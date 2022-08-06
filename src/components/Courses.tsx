@@ -16,7 +16,7 @@ function Courses() {
     url.searchParams.append("body", course.description);
     url.searchParams.append("location", course.location);
 
-    window.open(url.toString());
+    window.open(url.toString())?.focus();
   };
 
   return (
@@ -24,6 +24,7 @@ function Courses() {
       {courses.map((course) => (
         <div className="bg-white shadow-lg rounded-md p-4" key={course.title}>
           <div className="text-lg font-medium">{course.title}</div>
+          <div className="text-sm text-gray-500">{course.description}</div>
           <button
             className="border py-1 px-2 rounded mt-2"
             onClick={() => exportToOutlook(course)}
