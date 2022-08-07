@@ -1,28 +1,33 @@
 export interface ICourse {
   title: string;
+  description: string;
   location: string;
 
   /** Day on which class is held */
   weekday: WeekDay;
 
-  /** Class session time '10:30 PM' format */
-  session_time: string;
+  /** Class session start time '10:30 PM' format */
+  start_time: string;
 
-  /** Is the event recurring */
-  is_recurring: boolean;
+  /** Class session end time, same format as start_time */
+  end_time: string;
 
   /** Course start date */
   start_date: Date;
+
   /** Course end date */
   end_date: Date;
-  description: string;
+
+  /** Is the event recurring */
+  is_recurring: boolean;
 }
 
-export type WeekDay =
-  | "Monday"
-  | "Tuesday"
-  | "Wednesday"
-  | "Thursday"
-  | "Friday"
-  | "Saturday"
-  | "Sunday";
+export enum WeekDay {
+  "Sunday" = 0,
+  "Monday" = 1,
+  "Tuesday" = 2,
+  "Wednesday" = 3,
+  "Thursday" = 4,
+  "Friday" = 5,
+  "Saturday" = 6,
+}

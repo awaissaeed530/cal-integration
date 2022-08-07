@@ -1,8 +1,12 @@
 import { courseList, ICourse } from "../models";
-import { generateIcs, UrlBuilder } from "../utils";
+import { createCourseEvents, generateIcs, UrlBuilder } from "../utils";
+
+import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid";
 
 function Courses() {
-  const courses = courseList;
+  const events = createCourseEvents(courseList);
+
   const exportToOutlookWeb = (course: ICourse) => {
     const url = new UrlBuilder()
       .baseUrl("https://outlook.live.com")
@@ -24,26 +28,12 @@ function Courses() {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-4 p-8">
-      {courses.map((course) => (
-        <div className="p-4 bg-white rounded-md shadow-lg" key={course.title}>
-          <div className="text-lg font-medium">{course.title}</div>
-          <div className="text-sm text-gray-500">{course.description}</div>
-          <button
-            className="px-2 py-1 mt-2 border rounded"
-            onClick={() => exportToOutlookWeb(course)}
-          >
-            Export To Outlook Web
-          </button>
-          <button
-            className="px-2 py-1 mt-2 border rounded"
-            onClick={() => exportToOutlook(course)}
-          >
-            Export To Outlook
-          </button>
-        </div>
-      ))}
-    </div>
+    <FullCalendar
+      plugins={[timeGridPlugin]}
+      initialView="timeGridWeek"
+      height="100vh"
+      events={events}
+    />
   );
 }
 
