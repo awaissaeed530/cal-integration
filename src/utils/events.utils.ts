@@ -6,22 +6,20 @@ import {
   nextSunday,
   nextThursday,
   nextTuesday,
-  nextWednesday,
+  nextWednesday
 } from "date-fns";
-import { FullCalendarEvent, ICourse, WeekDay } from "../models";
+import { CourseEvent, ICourse, WeekDay } from "../models";
 
-export function createCourseEvents(courses: ICourse[]): FullCalendarEvent[] {
-  const events: FullCalendarEvent[] = [];
+export function createCourseEvents(courses: ICourse[]): CourseEvent[] {
+  const events: CourseEvent[] = [];
   courses.forEach((course) => {
     if (!course.is_recurring) {
       const eventDay = isSameDay(course.weekday, course.start_date)
         ? course.start_date
         : getNextDayFn(course.weekday)(course.start_date);
       events.push({
-        title: course.title,
         date: eventDay,
-        start: formatDateWithSessionTime(course.start_time, eventDay),
-        end: formatDateWithSessionTime(course.end_time, eventDay),
+        courseRef: course,
       });
     }
   });

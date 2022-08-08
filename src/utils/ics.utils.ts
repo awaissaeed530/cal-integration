@@ -1,6 +1,6 @@
 import { ICourse } from "../models";
 
-export function generateIcs(course: ICourse) {
+export function generateIcs(course: ICourse, eventDay: Date) {
   const ics_lines = ["BEGIN:VCALENDAR"];
   ics_lines.push("PRODID:-//Pioneers Education//Pioneers Education v1.0//EN");
   ics_lines.push("VERSION:2.0");

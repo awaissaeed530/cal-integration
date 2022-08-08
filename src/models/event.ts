@@ -1,6 +1,6 @@
-export interface FullCalendarEvent {
-  title: string;
+import { ICourse } from "./ICourse";
+
+export interface CourseEvent {
   date: Date;
-  start: Date;
-  end: Date;
+  courseRef: ICourse;
 }
