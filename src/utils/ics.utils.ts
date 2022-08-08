@@ -1,38 +1,44 @@
-import { CourseEvent } from "../models";
-import { formatDateWithSessionTime } from "./events.utils";
+import { ICourse } from "../models";
+import { formatDateWithSessionTime, getCourseStartDay } from "./events.utils";
 
-export function generateIcs(events: CourseEvent[]) {
+export function generateIcs(courses: ICourse[], recurring = false) {
   const ics_lines = ["BEGIN:VCALENDAR"];
   ics_lines.push("PRODID:-//Pioneers Education//Pioneers Education v1.0//EN");
   ics_lines.push("VERSION:2.0");
   ics_lines.push("CALSCALE:GREGORIAN");
 
-  events.forEach((event) => {
+  courses.forEach((course) => {
+    const courseStartDay = getCourseStartDay(course);
     const start = normalizeDate(
-      formatDateWithSessionTime(event.courseRef.start_time, event.date)
+      formatDateWithSessionTime(course.start_time, courseStartDay)
     );
     const end = normalizeDate(
-      formatDateWithSessionTime(event.courseRef.end_time, event.date)
+      formatDateWithSessionTime(course.end_time, courseStartDay)
     );
 
-    ics_lines.push("BEGIN:VEVENT");
-    ics_lines.push("UID:Pioneers Education");
     ics_lines.push(
+      "BEGIN:VEVENT",
+      `UID:${course.title}`,
       "DTSTAMP:" + start,
       "DTSTART:" + start,
       "DTEND:" + end,
-      "SUMMARY:" + event.courseRef.title.replace(/.{65}/g, "$&\r\n ") // making sure it does not exceed 75 characters per line
+      "SUMMARY:" + course.title.replace(/.{65}/g, "$&\r\n ") // making sure it does not exceed 75 characters per line
     );
-    if (
-      event.courseRef.description !== null &&
-      event.courseRef.description !== ""
-    ) {
+    if (course.description !== null && course.description !== "") {
       ics_lines.push(
-        "X-ALT-DESC;FMTTYPE=text/html:" + event.courseRef.description
+        ("X-ALT-DESC;FMTTYPE=text/html:" + course.description).replace(
+          /.{65}/g,
+          "$&\r\n "
+        )
       );
     }
-    if (event.courseRef.location !== null && event.courseRef.location !== "") {
-      ics_lines.push("LOCATION:" + event.courseRef.location);
+    if (course.location !== null && course.location !== "") {
+      ics_lines.push("LOCATION:" + course.location);
+    }
+    if (recurring) {
+      ics_lines.push(
+        `RRULE:FREQ=WEEKLY;UNTIL=${normalizeDate(course.end_date)}`
+      );
     }
     ics_lines.push(
       "STATUS:CONFIRMED",

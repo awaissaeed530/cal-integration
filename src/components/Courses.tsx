@@ -1,16 +1,16 @@
-import { format } from "date-fns";
-import { CourseEvent, courseList } from "../models";
+import { courseList, ICourse } from "../models";
 import {
-  createCourseEvents,
   formatDateWithSessionTime,
   generateIcs,
+  getCourseStartDay,
   UrlBuilder,
 } from "../utils";
 
 function Courses() {
-  const events = createCourseEvents(courseList);
+  const courses = courseList;
 
-  const exportToOutlookWeb = (event: CourseEvent) => {
+  const exportToOutlookWeb = (course: ICourse) => {
+    const courseStartDay = getCourseStartDay(course);
     const url = new UrlBuilder()
       .baseUrl("https://outlook.live.com")
       .path("calendar/0/deeplink/compose")
@@ -19,31 +19,28 @@ function Courses() {
       .param(
         "startdt",
         formatDateWithSessionTime(
-          event.courseRef.start_time,
-          event.date
+          course.start_time,
+          courseStartDay
         ).toISOString()
       )
       .param(
         "enddt",
-        formatDateWithSessionTime(
-          event.courseRef.end_time,
-          event.date
-        ).toISOString()
+        formatDateWithSessionTime(course.end_time, courseStartDay).toISOString()
       )
-      .param("subject", event.courseRef.title)
-      .param("body", event.courseRef.description)
-      .param("location", event.courseRef.location)
+      .param("subject", course.title)
+      .param("body", course.description)
+      .param("location", course.location)
       .build();
 
     window.open(url.toString())?.focus();
   };
 
-  const exportToOutlook = (event: CourseEvent) => {
-    generateIcs([event]);
+  const exportToOutlook = (course: ICourse) => {
+    generateIcs([course]);
   };
 
   const exportAll = () => {
-    generateIcs(events);
+    generateIcs(courses, true);
   };
 
   return (
@@ -56,32 +53,24 @@ function Courses() {
       </button>
 
       <div className="grid grid-cols-4 gap-4">
-        {events.map((event) => (
-          <div
-            className="p-4 bg-white rounded-md shadow-lg"
-            key={event.courseRef.title}
-          >
-            <div className="flex items-center justify-between">
-              <div className="text-lg font-medium">{event.courseRef.title}</div>
-              <div className="text-sm text-gray-400">
-                {format(event.date, "dd/MM/yyyy")}
-              </div>
+        {courses.map((course) => (
+          <div className="p-4 bg-white rounded-md shadow-lg" key={course.title}>
+            <div className="text-lg font-medium">{course.title}</div>
+            <div className="text-sm text-gray-500">{course.description}</div>
+            <div className="flex items-center space-x-2">
+              <button
+                className="px-2 py-1 mt-2 border rounded"
+                onClick={() => exportToOutlookWeb(course)}
+              >
+                Outlook (Web)
+              </button>
+              <button
+                className="px-2 py-1 mt-2 border rounded"
+                onClick={() => exportToOutlook(course)}
+              >
+                Outlook (Desktop)
+              </button>
             </div>
-            <div className="text-sm text-gray-500">
-              {event.courseRef.description}
-            </div>
-            <button
-              className="px-2 py-1 mt-2 border rounded"
-              onClick={() => exportToOutlookWeb(event)}
-            >
-              Export To Outlook Web
-            </button>
-            <button
-              className="px-2 py-1 mt-2 border rounded"
-              onClick={() => exportToOutlook(event)}
-            >
-              Export To Outlook
-            </button>
           </div>
         ))}
       </div>

@@ -32,7 +32,4 @@ export enum WeekDay {
   "Saturday" = 6,
 }
 
-export interface CourseEvent {
-  date: Date;
-  courseRef: ICourse;
-}
+export type CourseEvent = { eventDay: Date } & ICourse;

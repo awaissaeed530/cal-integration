@@ -22,7 +22,7 @@ export const courseList: ICourse[] = [
     weekday: WeekDay.Friday,
     start_time: "12:00 AM",
     end_time: "01:00 PM",
-    start_date: new Date(2022, 7, 10),
-    end_date: new Date(2022, 8, 10),
+    start_date: new Date(2022, 7, 15),
+    end_date: new Date(2022, 9, 3),
   },
 ];
