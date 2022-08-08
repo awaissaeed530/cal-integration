@@ -31,3 +31,8 @@ export enum WeekDay {
   "Friday" = 5,
   "Saturday" = 6,
 }
+
+export interface CourseEvent {
+  date: Date;
+  courseRef: ICourse;
+}

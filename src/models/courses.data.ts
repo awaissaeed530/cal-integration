@@ -1,4 +1,4 @@
-import { ICourse, WeekDay } from "./ICourse";
+import { ICourse, WeekDay } from "./course.types";
 
 export const courseList: ICourse[] = [
   {

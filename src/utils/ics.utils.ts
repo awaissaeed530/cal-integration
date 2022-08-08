@@ -41,17 +41,29 @@ export function generateIcs(events: CourseEvent[]) {
       "END:VEVENT"
     );
   });
+
   ics_lines.push("END:VCALENDAR");
   let dlurl =
     "data:text/calendar;charset=utf-8," +
     encodeURIComponent(ics_lines.join("\r\n"));
   const filename = "Event Calendar";
 
+  saveFile(dlurl, filename);
+}
+
+function normalizeDate(date: Date): string {
+  return date
+    .toISOString()
+    .replace(/\.\d{3}/g, "")
+    .replace(/[^a-z\d]/gi, "");
+}
+
+function saveFile(url: string, fileName: string) {
   try {
     const save = document.createElement("a");
-    save.href = dlurl;
+    save.href = url;
     save.target = "_system";
-    save.download = filename;
+    save.download = fileName;
     const evt = new MouseEvent("click", {
       view: window,
       button: 0,
@@ -63,11 +75,4 @@ export function generateIcs(events: CourseEvent[]) {
   } catch (e) {
     console.error(e);
   }
-}
-
-function normalizeDate(date: Date): string {
-  return date
-    .toISOString()
-    .replace(/\.\d{3}/g, "")
-    .replace(/[^a-z\d]/gi, "");
 }

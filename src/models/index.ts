@@ -1,3 +1,2 @@
-export * from "./ICourse";
-export * from "./courses";
-export * from "./event";
+export * from "./course.types";
+export * from "./courses.data";
