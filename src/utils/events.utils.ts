@@ -1,12 +1,14 @@
 import {
   getDay,
+  isBefore,
+  isEqual,
   nextFriday,
   nextMonday,
   nextSaturday,
   nextSunday,
   nextThursday,
   nextTuesday,
-  nextWednesday
+  nextWednesday,
 } from "date-fns";
 import { CourseEvent, ICourse, WeekDay } from "../models";
 
@@ -21,9 +23,28 @@ export function createCourseEvents(courses: ICourse[]): CourseEvent[] {
         date: eventDay,
         courseRef: course,
       });
+    } else {
+      if (isSameDay(course.weekday, course.start_date)) {
+        events.push({
+          date: course.start_date,
+          courseRef: course,
+        });
+      } else {
+        let eventDay = getNextDayFn(course.weekday)(course.start_date);
+        while (
+          isBefore(eventDay, course.end_date) ||
+          isEqual(eventDay, course.end_date)
+        ) {
+          events.push({
+            date: eventDay,
+            courseRef: course,
+          });
+          eventDay = getNextDayFn(course.weekday)(eventDay);
+        }
+      }
     }
   });
-  return events;
+  return events.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
 function getNextDayFn(day: WeekDay): (date: number | Date) => Date {

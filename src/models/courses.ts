@@ -2,10 +2,10 @@ import { ICourse, WeekDay } from "./ICourse";
 
 export const courseList: ICourse[] = [
   {
-    title: "Cloud DevOps Engineer",
+    title: "DevOps Engineer",
     description:
       "Companies are looking for talented DevOps engineers to remain competitive in this agile world. Enroll now to operationalize infrastructure at scale and deliver applications and services at high velocity, an essential skill for advancing your career.",
-    is_recurring: false,
+    is_recurring: true,
     location: "Lahore",
     weekday: WeekDay.Tuesday,
     start_time: "10:30 AM",
