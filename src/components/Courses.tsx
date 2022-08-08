@@ -5,6 +5,7 @@ import {
   getCourseStartDay,
   UrlBuilder,
 } from "../utils";
+import Dropdown from "react-bootstrap/Dropdown";
 
 function Courses() {
   const courses = courseList;
@@ -44,35 +45,35 @@ function Courses() {
   };
 
   return (
-    <div className="p-8">
-      <button
-        className="px-2 py-1 mt-2 mb-4 border rounded"
-        onClick={exportAll}
-      >
-        Export All
-      </button>
+    <div className="p-3">
+      <div className="container-fluid">
+        <button className="mb-3 btn btn-primary" onClick={exportAll}>
+          Export All
+        </button>
 
-      <div className="grid grid-cols-4 gap-4">
-        {courses.map((course) => (
-          <div className="p-4 bg-white rounded-md shadow-lg" key={course.title}>
-            <div className="text-lg font-medium">{course.title}</div>
-            <div className="text-sm text-gray-500">{course.description}</div>
-            <div className="flex items-center space-x-2">
-              <button
-                className="px-2 py-1 mt-2 border rounded"
-                onClick={() => exportToOutlookWeb(course)}
-              >
-                Outlook (Web)
-              </button>
-              <button
-                className="px-2 py-1 mt-2 border rounded"
-                onClick={() => exportToOutlook(course)}
-              >
-                Outlook (Desktop)
-              </button>
+        <div className="row">
+          {courses.map((course) => (
+            <div className="col-4" key={course.title}>
+              <div className="card">
+                <div className="card-body">
+                  <h5 className="card-title">{course.title}</h5>
+                  <p className="card-text">{course.description}</p>
+                  <Dropdown>
+                    <Dropdown.Toggle variant="primary">Export</Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => exportToOutlookWeb(course)}>
+                        Outlook (Web)
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => exportToOutlook(course)}>
+                        Outlook (Desktop)
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
