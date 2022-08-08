@@ -1,6 +1,14 @@
 import { ICourse } from "../models";
+import { formatDateWithSessionTime } from "./events.utils";
 
 export function generateIcs(course: ICourse, eventDay: Date) {
+  const start = normalizeDate(
+    formatDateWithSessionTime(course.start_time, eventDay)
+  );
+  const end = normalizeDate(
+    formatDateWithSessionTime(course.end_time, eventDay)
+  );
+
   const ics_lines = ["BEGIN:VCALENDAR"];
   ics_lines.push("PRODID:-//Pioneers Education//Pioneers Education v1.0//EN");
   ics_lines.push("VERSION:2.0");
@@ -8,9 +16,9 @@ export function generateIcs(course: ICourse, eventDay: Date) {
   ics_lines.push("BEGIN:VEVENT");
   ics_lines.push("UID:Pioneers Education");
   ics_lines.push(
-    "DTSTAMP:" + normalizeDate(course.start_date),
-    "DTSTART:" + normalizeDate(course.start_date),
-    "DTEND:" + normalizeDate(course.end_date),
+    "DTSTAMP:" + start,
+    "DTSTART:" + start,
+    "DTEND:" + end,
     "SUMMARY:" + course.title.replace(/.{65}/g, "$&\r\n ") // making sure it does not exceed 75 characters per line
   );
   if (course.description !== null && course.description !== "") {

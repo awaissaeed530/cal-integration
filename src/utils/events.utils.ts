@@ -70,7 +70,7 @@ function isSameDay(day: WeekDay, date: Date): boolean {
   return day === getDay(date);
 }
 
-function formatDateWithSessionTime(sessionTime: string, date: Date): Date {
+export function formatDateWithSessionTime(sessionTime: string, date: Date): Date {
   // 10:30 PM
   const sessionSplit = sessionTime.split(" ");
   if (!["AM", "PM"].includes(sessionSplit[1])) {

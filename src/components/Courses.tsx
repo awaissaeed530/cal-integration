@@ -1,6 +1,11 @@
 import { format } from "date-fns";
 import { CourseEvent, courseList } from "../models";
-import { createCourseEvents, generateIcs, UrlBuilder } from "../utils";
+import {
+  createCourseEvents,
+  formatDateWithSessionTime,
+  generateIcs,
+  UrlBuilder,
+} from "../utils";
 
 function Courses() {
   const events = createCourseEvents(courseList);
@@ -11,8 +16,20 @@ function Courses() {
       .path("calendar/0/deeplink/compose")
       .param("path", "/calendar/action/compose")
       .param("rru", "addevent")
-      .param("startdt", event.courseRef.start_date.toISOString())
-      .param("enddt", event.courseRef.end_date.toISOString())
+      .param(
+        "startdt",
+        formatDateWithSessionTime(
+          event.courseRef.start_time,
+          event.date
+        ).toISOString()
+      )
+      .param(
+        "enddt",
+        formatDateWithSessionTime(
+          event.courseRef.end_time,
+          event.date
+        ).toISOString()
+      )
       .param("subject", event.courseRef.title)
       .param("body", event.courseRef.description)
       .param("location", event.courseRef.location)
