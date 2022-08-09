@@ -1,4 +1,7 @@
-import { courseList, ICourse } from "../models";
+import React, { useEffect } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
+import { useLocation } from "react-router-dom";
+import { courseList, Credentials, ICourse } from "../models";
 import {
   formatDateWithSessionTime,
   generateIcs,
@@ -6,10 +9,25 @@ import {
   normalizeDate,
   UrlBuilder,
 } from "../utils";
-import Dropdown from "react-bootstrap/Dropdown";
+
+function useQuery() {
+  const { search } = useLocation();
+
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
 
 function Courses() {
   const courses = courseList;
+  const query = useQuery();
+
+  useEffect(() => {
+    const code = query.get("code") as string;
+    const scopes = query.get("scope") as string;
+
+    if (code && scopes) {
+      saveGoogleCredentials({ code, scopes });
+    }
+  }, [query]);
 
   const exportToOutlookWeb = (course: ICourse) => {
     const courseStartDay = getCourseStartDay(course);
@@ -67,12 +85,27 @@ function Courses() {
     generateIcs(courses, true);
   };
 
-  const getGoogleAuthUrl = () => {
-    fetch("http://localhost:3001/auth")
-      .then((res) => res.text())
-      .then((url) => {
-        window.open(url, "_system");
-      });
+  const getGoogleAuthUrl = async () => {
+    const url = await fetch("http://localhost:3001/auth").then((res) =>
+      res.text()
+    );
+    window.open(url, "_system");
+  };
+
+  const getGoogleCredentials = () => {
+    return fetch("http://localhost:3001/credentials")
+      .then((res) => res.json())
+      .then((credentials) => credentials as Credentials);
+  };
+
+  const saveGoogleCredentials = (credentails: Credentials) => {
+    return fetch("http://localhost:3001/credentials", {
+      body: JSON.stringify(credentails),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   };
 
   return (
