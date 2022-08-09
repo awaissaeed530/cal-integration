@@ -3,6 +3,7 @@ import {
   formatDateWithSessionTime,
   generateIcs,
   getCourseStartDay,
+  normalizeDate,
   UrlBuilder,
 } from "../utils";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -40,6 +41,28 @@ function Courses() {
     generateIcs([course]);
   };
 
+  const exportToGoogle = (course: ICourse) => {
+    const courseStartDay = getCourseStartDay(course);
+    const startDate = normalizeDate(
+      formatDateWithSessionTime(course.start_time, courseStartDay)
+    );
+    const endDate = normalizeDate(
+      formatDateWithSessionTime(course.end_time, courseStartDay)
+    );
+
+    const url = new UrlBuilder()
+      .baseUrl("https://calendar.google.com")
+      .path("calendar/render")
+      .param("action", "TEMPLATE")
+      .param("dates", `${startDate}/${endDate}`)
+      .param("text", course.title)
+      .param("details", course.description)
+      .param("location", course.location)
+      .build();
+
+    window.open(url.toString())?.focus();
+  };
+
   const exportAll = () => {
     generateIcs(courses, true);
   };
@@ -66,6 +89,9 @@ function Courses() {
                       </Dropdown.Item>
                       <Dropdown.Item onClick={() => exportToOutlook(course)}>
                         Outlook (Desktop)
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => exportToGoogle(course)}>
+                        Google
                       </Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
