@@ -67,11 +67,26 @@ function Courses() {
     generateIcs(courses, true);
   };
 
+  const getGoogleAuthUrl = () => {
+    fetch("http://localhost:3001/auth")
+      .then((res) => res.text())
+      .then((url) => {
+        window.open(url, "_system");
+      });
+  };
+
   return (
     <div className="p-3">
       <div className="container-fluid">
         <button className="mb-3 btn btn-primary" onClick={exportAll}>
           Export All
+        </button>
+
+        <button
+          className="ms-3 mb-3 btn btn-primary"
+          onClick={getGoogleAuthUrl}
+        >
+          Authorize Google
         </button>
 
         <div className="row">

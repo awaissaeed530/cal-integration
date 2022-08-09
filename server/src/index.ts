@@ -1,10 +1,15 @@
 import express from "express";
+import { GoogleAPIs } from "./google";
+import cors from "cors";
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.get("/", (req, res) => {
-  res.send("Express + TypeScript Server");
+app.use(cors());
+
+app.get("/auth", (req, res) => {
+  const url = GoogleAPIs.getAuthUrl();
+  res.send(url);
 });
 
 app.listen(port, () => {
