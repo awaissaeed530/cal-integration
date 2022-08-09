@@ -1,4 +1,5 @@
 import {
+  formatISO,
   getDay,
   nextFriday,
   nextMonday,
@@ -10,8 +11,6 @@ import {
 } from "date-fns";
 import { ICourse, WeekDay } from "../models";
 
-const timeZone = "America/New_York";
-
 /** Generates and download an .ics file from given list of courses  */
 export function generateIcs(courses: ICourse[], recurring = false) {
   const ics_lines = [
@@ -20,27 +19,6 @@ export function generateIcs(courses: ICourse[], recurring = false) {
     "VERSION:2.0",
     "CALSCALE:GREGORIAN",
   ];
-
-  // To use a different timezone, we need to manually add a new timezone definition
-  ics_lines.push(
-    "BEGIN:VTIMEZONE",
-    `TZID:${timeZone}`, // Id of time zone
-    "BEGIN:STANDARD", // Standard time observance information
-    "DTSTART:20221106T010000", // Start of standard time observance implementation
-    "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11", // Recurrence rule for the onset of the observance
-    "TZOFFSETFROM:-0500", // This property specifies the offset that is in use prior to this time zone observance.
-    "TZOFFSETTO:-0600", // This property specifies the offset that is in use in this time zone observance.
-    "TZNAME:PST", // Customary name for the time zone
-    "END:STANDARD",
-    "BEGIN:DAYLIGHT", // Daylight time observance information
-    "DTSTART:20220313T030000",
-    "RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3",
-    "TZOFFSETFROM:-0400",
-    "TZOFFSETTO:-0300",
-    "TZNAME:PDT",
-    "END:DAYLIGHT",
-    "END:VTIMEZONE"
-  );
 
   courses.forEach((course) => {
     const courseStartDay = getCourseStartDay(course);
@@ -54,9 +32,9 @@ export function generateIcs(courses: ICourse[], recurring = false) {
     ics_lines.push(
       "BEGIN:VEVENT",
       `UID:${course.title}`,
-      `DTSTAMP;TZID=${timeZone}:${start}`,
-      `DTSTART;TZID=${timeZone}:${start}`,
-      `DTEND;TZID=${timeZone}:${end}`,
+      `DTSTAMP:${start}`,
+      `DTSTART:${start}`,
+      `DTEND:${end}`,
       `SUMMARY:${course.title.replace(/.{65}/g, "$&\r\n ")}` // making sure it does not exceed 75 characters per line
     );
     if (course.description !== null && course.description !== "") {
@@ -91,11 +69,7 @@ export function generateIcs(courses: ICourse[], recurring = false) {
 
 /** Returns a formmated ISO date string without dashes and hyphens */
 function normalizeDate(date: Date): string {
-  return date
-    .toISOString()
-    .replace(/\.\d{3}/g, "")
-    .replace(/[^a-z\d]/gi, "")
-    .replace("Z", "");
+  return formatISO(date, { format: "basic" });
 }
 
 /** Downloads given file url */
@@ -155,7 +129,6 @@ export function formatDateWithSessionTime(
   sessionTime: string,
   date: Date
 ): Date {
-  // 10:30 PM
   const sessionSplit = sessionTime.split(" ");
   if (!["AM", "PM"].includes(sessionSplit[1])) {
     throw new Error("Invalid session time format");
@@ -169,5 +142,15 @@ export function formatDateWithSessionTime(
   const formattedDate = new Date(date);
   formattedDate.setHours(isAm ? parseInt(hours) : parseInt(hours) + 12);
   formattedDate.setMinutes(parseInt(minutes));
+
+  // Calculate time according to current user's timezone
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const utcDate = new Date(
+    formattedDate.toLocaleString("en-US", { timeZone: "UTC" })
+  );
+  const tzDate = new Date(formattedDate.toLocaleString("en-US", { timeZone }));
+  const offset = utcDate.getTime() - tzDate.getTime();
+  formattedDate.setTime(formattedDate.getTime() - offset);
+
   return formattedDate;
 }
