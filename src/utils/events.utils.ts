@@ -10,12 +10,37 @@ import {
 } from "date-fns";
 import { ICourse, WeekDay } from "../models";
 
+const timeZone = "America/New_York";
+
 /** Generates and download an .ics file from given list of courses  */
 export function generateIcs(courses: ICourse[], recurring = false) {
-  const ics_lines = ["BEGIN:VCALENDAR"];
-  ics_lines.push("PRODID:-//Pioneers Education//Pioneers Education v1.0//EN");
-  ics_lines.push("VERSION:2.0");
-  ics_lines.push("CALSCALE:GREGORIAN");
+  const ics_lines = [
+    "BEGIN:VCALENDAR",
+    "PRODID:-//Pioneers Education//Pioneers Education v1.0//EN",
+    "VERSION:2.0",
+    "CALSCALE:GREGORIAN",
+  ];
+
+  // To use a different timezone, we need to manually add a new timezone definition
+  ics_lines.push(
+    "BEGIN:VTIMEZONE",
+    `TZID:${timeZone}`, // Id of time zone
+    "BEGIN:STANDARD", // Standard time observance information
+    "DTSTART:20221106T010000", // Start of standard time observance implementation
+    "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11", // Recurrence rule for the onset of the observance
+    "TZOFFSETFROM:-0500", // This property specifies the offset that is in use prior to this time zone observance.
+    "TZOFFSETTO:-0600", // This property specifies the offset that is in use in this time zone observance.
+    "TZNAME:PST", // Customary name for the time zone
+    "END:STANDARD",
+    "BEGIN:DAYLIGHT", // Daylight time observance information
+    "DTSTART:20220313T030000",
+    "RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3",
+    "TZOFFSETFROM:-0400",
+    "TZOFFSETTO:-0300",
+    "TZNAME:PDT",
+    "END:DAYLIGHT",
+    "END:VTIMEZONE"
+  );
 
   courses.forEach((course) => {
     const courseStartDay = getCourseStartDay(course);
@@ -29,17 +54,14 @@ export function generateIcs(courses: ICourse[], recurring = false) {
     ics_lines.push(
       "BEGIN:VEVENT",
       `UID:${course.title}`,
-      "DTSTAMP:" + start,
-      "DTSTART:" + start,
-      "DTEND:" + end,
-      "SUMMARY:" + course.title.replace(/.{65}/g, "$&\r\n ") // making sure it does not exceed 75 characters per line
+      `DTSTAMP;TZID=${timeZone}:${start}`,
+      `DTSTART;TZID=${timeZone}:${start}`,
+      `DTEND;TZID=${timeZone}:${end}`,
+      `SUMMARY:${course.title.replace(/.{65}/g, "$&\r\n ")}` // making sure it does not exceed 75 characters per line
     );
     if (course.description !== null && course.description !== "") {
       ics_lines.push(
-        ("DESCRIPTION:" + course.description).replace(
-          /.{65}/g,
-          "$&\r\n "
-        )
+        ("DESCRIPTION:" + course.description).replace(/.{65}/g, "$&\r\n ")
       );
     }
     if (course.location !== null && course.location !== "") {
@@ -47,7 +69,7 @@ export function generateIcs(courses: ICourse[], recurring = false) {
     }
     if (recurring) {
       ics_lines.push(
-        `RRULE:FREQ=WEEKLY;UNTIL=${normalizeDate(course.end_date)}`
+        `RRULE:FREQ=WEEKLY;UNTIL=${normalizeDate(course.end_date)}Z`
       );
     }
     ics_lines.push(
@@ -72,7 +94,8 @@ function normalizeDate(date: Date): string {
   return date
     .toISOString()
     .replace(/\.\d{3}/g, "")
-    .replace(/[^a-z\d]/gi, "");
+    .replace(/[^a-z\d]/gi, "")
+    .replace("Z", "");
 }
 
 /** Downloads given file url */
