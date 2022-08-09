@@ -36,7 +36,7 @@ export function generateIcs(courses: ICourse[], recurring = false) {
     );
     if (course.description !== null && course.description !== "") {
       ics_lines.push(
-        ("X-ALT-DESC;FMTTYPE=text/html:" + course.description).replace(
+        ("DESCRIPTION:" + course.description).replace(
           /.{65}/g,
           "$&\r\n "
         )
