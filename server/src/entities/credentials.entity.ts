@@ -1,4 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 @Entity("ZMESSAGE")
 export class Credentials {
@@ -10,4 +15,7 @@ export class Credentials {
 
   @Column()
   scopes!: string;
+
+  @CreateDateColumn()
+  createdOn!: Date;
 }
