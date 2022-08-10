@@ -6,6 +6,5 @@ export const dataSource = new DataSource({
   type: "sqlite",
   database: `${path.resolve(__dirname, "..")}/data/line.sqlite`,
   entities: [Credentials],
-  logging: true,
   synchronize: true,
 });

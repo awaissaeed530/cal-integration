@@ -2,7 +2,7 @@ import cors from "cors";
 import express from "express";
 import { dataSource } from "./db";
 import { Credentials } from "./entities";
-import { GoogleAPIs } from "./google";
+import { exportEvents, getAuthUrl } from "./google";
 
 dataSource
   .initialize()
@@ -20,8 +20,20 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/auth", (req, res) => {
-  const url = GoogleAPIs.getAuthUrl();
+  const url = getAuthUrl();
   res.status(200).send(url);
+});
+
+app.get("/credentials", async (req, res) => {
+  const credentials = await dataSource.getRepository(Credentials).find({
+    order: { createdOn: "desc" },
+    take: 1,
+  });
+  if (credentials[0]) {
+    res.status(200).json(credentials[0]);
+  } else {
+    res.sendStatus(400);
+  }
 });
 
 app.post("/credentials", async (req, res) => {
@@ -36,13 +48,10 @@ app.post("/credentials", async (req, res) => {
   }
 });
 
-app.get("/credentials", async (req, res) => {
-  const credentials = await dataSource.getRepository(Credentials).find();
-  if (credentials[0]) {
-    res.status(200).json(credentials[0]);
-  } else {
-    res.sendStatus(400);
-  }
+app.post("/events", async (req, res) => {
+  const { courses, credentials } = req.body;
+  const events = await exportEvents(courses, credentials);
+  res.status(200).send(events);
 });
 
 app.listen(port, () => {
