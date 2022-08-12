@@ -1,8 +1,8 @@
 import cors from "cors";
 import express from "express";
 import { dataSource } from "./db";
-import { Credentials } from "./entities";
-import { exportEvents, getAuthUrl } from "./google";
+import { GoogleCredentials } from "./entities";
+import { exportEvents, getAuthClient, getAuthUrl } from "./google";
 
 dataSource
   .initialize()
@@ -25,7 +25,7 @@ app.get("/auth", (req, res) => {
 });
 
 app.get("/credentials", async (req, res) => {
-  const credentials = await dataSource.getRepository(Credentials).find({
+  const credentials = await dataSource.getRepository(GoogleCredentials).find({
     order: { createdOn: "desc" },
     take: 1,
   });
@@ -38,10 +38,14 @@ app.get("/credentials", async (req, res) => {
 
 app.post("/credentials", async (req, res) => {
   try {
-    const credentials = req.body as Credentials;
+    const { code } = req.body;
+    const auth = getAuthClient();
+    const { tokens } = await auth.getToken(code);
+
     const entity = await dataSource
-      .getRepository(Credentials)
-      .save(credentials);
+      .getRepository(GoogleCredentials)
+      .save(tokens as GoogleCredentials);
+
     res.status(201).send(entity);
   } catch (e) {
     res.status(500).send(e);
@@ -49,9 +53,13 @@ app.post("/credentials", async (req, res) => {
 });
 
 app.post("/events", async (req, res) => {
-  const { courses, credentials } = req.body;
-  const events = await exportEvents(courses, credentials);
-  res.status(200).send(events);
+  try {
+    const { events, credentials } = req.body;
+    const resEvents = await exportEvents(events, credentials);
+    res.status(200).json(resEvents);
+  } catch (e) {
+    res.status(400).json(e);
+  }
 });
 
 app.listen(port, () => {
