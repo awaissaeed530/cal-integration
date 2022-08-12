@@ -1,13 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { courseList, GoogleCredentials, ICourse } from "../models";
 import {
   formatDateWithSessionTime,
   generateIcs,
   getCourseStartDay,
   normalizeDate,
-  UrlBuilder,
+  UrlBuilder
 } from "../utils";
 
 function useQuery() {
@@ -19,15 +19,20 @@ function useQuery() {
 function Courses() {
   const courses = courseList;
   const query = useQuery();
+  const [message, setMessage] = useState("");
+  const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const code = query.get("code") as string;
-    const scopes = query.get("scope") as string;
+    const scope = query.get("scope") as string;
 
-    if (code && scopes) {
-      saveGoogleCredentials({ code, scopes });
+    if (code && scope) {
+      saveGoogleCredentials({ code, scope }).then(() => {
+        setMessage("Google Account has been authorized. Please export again");
+        setSearchParams([]);
+      });
     }
-  }, [query]);
+  }, [query, setSearchParams]);
 
   const exportToOutlookWeb = (course: ICourse) => {
     const courseStartDay = getCourseStartDay(course);
@@ -98,7 +103,10 @@ function Courses() {
       .then((credentials) => credentials as GoogleCredentials);
   };
 
-  const saveGoogleCredentials = (credentails: GoogleCredentials) => {
+  const saveGoogleCredentials = (credentails: {
+    code: string;
+    scope: string;
+  }) => {
     return fetch("http://localhost:3001/credentials", {
       body: JSON.stringify(credentails),
       method: "POST",
@@ -114,8 +122,32 @@ function Courses() {
     courses: ICourse[],
     credentials: GoogleCredentials
   ) => {
+    const events = courses.map((course) => {
+      const courseStartDay = getCourseStartDay(course);
+      const startDate = formatDateWithSessionTime(
+        course.start_time,
+        courseStartDay
+      ).toISOString();
+      const endDate = formatDateWithSessionTime(
+        course.end_time,
+        courseStartDay
+      ).toISOString();
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      return {
+        summary: course.title,
+        location: course.location,
+        description: course.description,
+        start: { dateTime: startDate, timeZone },
+        end: { dateTime: endDate, timeZone },
+        recurrence: [
+          `RRULE:FREQ=WEEKLY;UNTIL=${normalizeDate(course.end_date)}Z`,
+        ],
+      };
+    });
+
     return fetch("http://localhost:3001/events", {
-      body: JSON.stringify({ courses, credentials }),
+      body: JSON.stringify({ events, credentials }),
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -129,6 +161,7 @@ function Courses() {
     try {
       const credentials = await getGoogleCredentials();
       await exportGoogleEvents(courseList, credentials);
+      setMessage("Events have been added to Google Calendar");
     } catch (e) {
       authenticateGoogle();
     }
@@ -176,6 +209,8 @@ function Courses() {
           ))}
         </div>
       </div>
+
+      <p className="text-success">{message}</p>
     </div>
   );
 }
