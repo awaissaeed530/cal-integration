@@ -68,7 +68,7 @@ export function generateIcs(courses: ICourse[], recurring = false) {
 }
 
 /** Returns a formmated ISO date string without dashes and hyphens */
-function normalizeDate(date: Date): string {
+export function normalizeDate(date: Date): string {
   // split remove additional timezone info (outlook would produce error otherwise)
   return formatISO(date, { format: "basic" }).split('+')[0];
 }
